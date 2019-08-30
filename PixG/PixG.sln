@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.705
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PixG", "PixG.pyproj", "{E631C2B3-B382-4CBA-B8C0-0F3025A63995}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E631C2B3-B382-4CBA-B8C0-0F3025A63995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E631C2B3-B382-4CBA-B8C0-0F3025A63995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2DE7C193-F8A9-483A-B4E4-AA27A4310E37}
+	EndGlobalSection
+EndGlobal
