@@ -37,7 +37,7 @@ if __name__ == '__main__':
     num = 0
 
     for k in range(500):
-        for i in range(3):
+        for i in range(4):
             testdata = TestData[i].cuda()
             traindata = TrainData[i].cuda()
             testdata = testdata.unsqueeze(0).cuda()

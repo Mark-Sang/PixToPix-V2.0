@@ -44,54 +44,42 @@ class UNetUp(nn.Module):
 
         return x
 
-
-#G 3*576*720--->3*576*720
+#g 3*576*720--->3*576*720
 class GeneratorUNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=3):
         super(GeneratorUNet, self).__init__()
 
-        self.samll = nn.Sequential(
-            nn.Conv2d(3, 3, 4, stride=2, padding=1),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
-            
-            nn.Conv2d(3, 3, 4, stride=2, padding=1),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
+        self.down1 = UNetDown(in_channels, 64, normalize=False)
+        self.down2 = UNetDown(64, 128)
+        self.down3 = UNetDown(128,128)
+        self.down4 = UNetDown(128,128)
 
-            nn.Conv2d(3, 1, 4, stride=2, padding=1),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
-        )
+        self.up1 = UNetUp(128,128)
+        self.up2 = UNetUp(256,128)
+        self.up3 = UNetUp(256,64)
+ 
+        self.final = nn.Sequential(
+            nn.Upsample(scale_factor=2),
+            nn.ZeroPad2d((1,0,1,0)),
+            nn.Conv2d(128, 3 ,4, padding=1),
+            nn.Tanh(),
+            )
 
-        self.large = nn.Sequential(
-            nn.ConvTranspose2d(1, 3, 4, 2, 1, bias=False),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(3, 3, 4, 2, 1, bias=False),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(3, 3, 4, 2, 1, bias=False),
-            nn.InstanceNorm2d(3),
-            nn.ReLU(True),
-        )
-
-        self.fc=nn.Sequential(
-            nn.Linear(1*72*90, 1*72*90),
-            nn.ReLU(True),
-        )
         
     def forward(self, x):
-        x = self.samll(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-        x = x.view(x.size(0), 1, 72, 90)
-        x = self.large(x)
-        return x
+        d1=self.down1(x)                     #64,288,360
+        d2=self.down2(d1)                    #128,144,180
+        d3=self.down3(d2)                    #128,72,90
+        d4=self.down4(d3)                    #128,36,45
 
-#D  3*576*720--->3*576*720
+        u1=self.up1(d4,d3)                   #256,72,90
+        u2=self.up2(u1,d2)                   #256,144,180
+        u3=self.up3(u2,d1)                   #128,288,360
+
+        f=self.final(u3)
+        return f
+
+#d  3*576*720--->3*576*720
 class Discriminator(nn.Module):
     def __init__(self, in_channels=3):
         super(Discriminator, self).__init__()
@@ -105,6 +93,71 @@ class Discriminator(nn.Module):
             nn.InstanceNorm2d(1),
         )
 
-    def forward(self, img_A, img_B):
-        img_input = torch.cat((img_A, img_B), 1)
+    def forward(self, img_a, img_b):
+        img_input = torch.cat((img_a, img_b), 1)
         return self.model(img_input)
+
+
+##G 3*576*720--->3*576*720
+#class GeneratorUNet(nn.Module):
+#    def __init__(self, in_channels=3, out_channels=3):
+#        super(GeneratorUNet, self).__init__()
+
+#        self.samll = nn.Sequential(
+#            nn.Conv2d(3, 3, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+            
+#            nn.Conv2d(3, 3, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+
+#            nn.Conv2d(3, 1, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+#        )
+
+#        self.large = nn.Sequential(
+#            nn.ConvTranspose2d(1, 3, 4, 2, 1, bias=False),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+
+#            nn.ConvTranspose2d(3, 3, 4, 2, 1, bias=False),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+
+#            nn.ConvTranspose2d(3, 3, 4, 2, 1, bias=False),
+#            nn.InstanceNorm2d(3),
+#            nn.ReLU(True),
+#        )
+
+#        self.fc=nn.Sequential(
+#            nn.Linear(1*72*90, 1*72*90),
+#            nn.ReLU(True),
+#        )
+        
+#    def forward(self, x):
+#        x = self.samll(x)
+#        x = x.view(x.size(0), -1)
+#        x = self.fc(x)
+#        x = x.view(x.size(0), 1, 72, 90)
+#        x = self.large(x)
+#        return x
+
+##D  3*576*720--->3*576*720
+#class Discriminator(nn.Module):
+#    def __init__(self, in_channels=3):
+#        super(Discriminator, self).__init__()
+
+#        self.model = nn.Sequential(
+#            nn.Conv2d(6, 3, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(3),
+#            nn.Conv2d(3, 2, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(2),
+#            nn.Conv2d(2, 1, 4, stride=2, padding=1),
+#            nn.InstanceNorm2d(1),
+#        )
+
+#    def forward(self, img_A, img_B):
+#        img_input = torch.cat((img_A, img_B), 1)
+#        return self.model(img_input)
